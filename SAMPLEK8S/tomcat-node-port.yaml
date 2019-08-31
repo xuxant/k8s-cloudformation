@@ -1,12 +1,12 @@
-apiversion: v1
+apiVersion: v1
 kind: Service
-meatadata:
+metadata:
   name: tomcat-node-port
-specs:
+spec:
   type: NodePort
   ports:
-    - ports: 3050
+    - port: 3050
       targetPort: 8080
       nodePort: 31515
   selector:
-    component: web
+    component: web 
