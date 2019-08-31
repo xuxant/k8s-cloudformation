@@ -1,0 +1,12 @@
+apiversion: v1
+kind: Service
+meatadata:
+  name: tomcat-node-port
+specs:
+  type: NodePort
+  ports:
+    - ports: 3050
+      targetPort: 8080
+      nodePort: 31515
+  selector:
+    component: web
