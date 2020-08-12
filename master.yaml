@@ -2,6 +2,8 @@
   - host: localhost
     connection: local
     become: yes
+    include_vars:
+      - vars.yaml
 
     tasks:
 
