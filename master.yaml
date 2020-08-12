@@ -1,0 +1,30 @@
+---
+  - host: localhost
+    connection: local
+    become: yes
+
+    tasks:
+
+      - name: Initialize the cluster
+        shell: "kubeadm init --control-plane-endpoint {{ ELB_NAME }}:6443 --upload-certs >> cluster_initialized.txt"
+        args:
+          chdir: $HOME
+          creates: cluster_initialized.txt
+
+      - name: create .kube directory
+        become: yes
+        file: 
+          path: /root/.kube
+          state: directory
+          mode: 0755
+
+      - name: Copy admin.conf to user's kube config
+        copy:
+          src: /etc/kubernetes/admin.conf
+          dest: /root/.kube/config
+          remote_src: yes
+          owner: root
+
+
+      - name: Install Calico Network Interface
+        shell: "kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml"
