@@ -1,0 +1,101 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+
+    - name: Remove packages
+      apt:
+        pkg:
+          - docker
+          - docker-engine
+          - docker.io 
+          - containerd 
+          - runc
+        state: absent
+
+    - name: Install essentials packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Add GPG key
+      shell: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
+
+    - name: Add Repository for Docker
+      shell: 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
+
+    - name: Add APT key for kubernetes
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+    
+    - name: Add Repository for Kubernetes
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+
+    - name: Install Required packages
+      apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - kubeadm
+          - kubelet
+          - kubectl
+
+    - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+        state: present
+
+    - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present
+
+    - name: Create directory for docker daemon
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+      with_items:
+        - /etc/systemd/system/docker.service.d
+        - /etc/docker
+
+    - name: Make the docker and kubernetes in same overlayfs
+      shell: 'echo "ewogICAgImV4ZWMtb3B0cyI6IFsibmF0aXZlLmNncm91cGRyaXZlcj1zeXN0ZW1kIl0sCiAgICAibG9nLWRyaXZlciI6ICJqc29uLWZpbGUiLAogICAgImxvZy1vcHRzIjogewogICAgICAgICJtYXgtc2l6ZSI6ICIxMDBtIgogICAgfSwKICAgICJzdG9yYWdlLWRyaXZlciI6ICJvdmVybGF5MiIKfQ==" | base64 -d >  /etc/docker/daemon.json'
+      
+    - name: Enable kernel module for overlay
+      modprobe:
+        name: "{{item}}"
+        state: present
+      with_items:
+        - overlay
+        - br_netfilter
+
+    - name: Daemon Reloading
+      shell: systemctl daemon-reload
+
+    - name: Enable sysctl
+      command: sysctl --system
+
+    - name: Start Services
+      services:
+        name: "{{item}}"
+        state: started
+      with_items:
+        - docker
+        - kubelet
