@@ -93,7 +93,7 @@
       command: sysctl --system
 
     - name: Start Services
-      services:
+      service:
         name: "{{item}}"
         state: started
       with_items:
