@@ -10,7 +10,7 @@
     - name: Initialize the cluster
       shell: "kubeadm init --control-plane-endpoint {{ ELB_NAME }}:6443 --upload-certs >> cluster_initialized.txt"
       args:
-        chdir: $HOME
+        chdir: /root
         creates: cluster_initialized.txt
 
     - name: create .kube directory
