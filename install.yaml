@@ -94,8 +94,13 @@
 
     - name: Start Services
       service:
-        name: "{{item}}"
+        name: docker
         state: started
-      with_items:
-        - docker
-        - kubelet
+        enabled: yes
+        
+    - name: Start Kubelet
+      service:
+        name: kubelet
+        state: started
+        enabled: yes
+  
