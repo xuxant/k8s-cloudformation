@@ -27,6 +27,3 @@
         remote_src: yes
         owner: root
 
-
-    - name: Install Calico Network Interface
-      shell: "kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml"
